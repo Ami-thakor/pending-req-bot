@@ -1,44 +1,61 @@
 import os
 import asyncio
 from pyrogram import Client, filters
-from pyrogram.errors import UserChannelsTooMuch, InputUserDeactivated
-from pyrogram.types import Message
+from pyrogram.errors import (
+    UserChannelsTooMuch,
+    InputUserDeactivated,
+    UserAlreadyParticipant,
+)
+
+from pyrogram.types import Message, ChatJoinRequest
 
 
-BOT_TOKEN = os.environ.get('BOT_TOKEN',
-                           '5841283031:AAF6jf0KLG64Jjh9fPt4qn1HQ8IFCCq5arQ')
-
-API_ID = 16514976
-API_HASH = '40bd8634b3836468bb2fb7eafe39d81a'
-USER_SESSION = """BQAOCfwkGWhIiohz0KTMfn3-dgIbdympSwjgZ7RmoP8lgEd55-eoy8S1NsWgVG_3_2AkFHVsLgBCUPgAYcJWncv4IcGMQEYQ23lJfTfzONnn7QtVDZHQH-YkZ2ySe3scUDaSKxVRTuoLivKPGKpSFLm63Fs0vw-4X42CVJi8AxDqPrwXUPnBKdKCfsiHH0o9tDxvzkj0ruyT0yHeSn75cjWDg0C57cqOG2ReREx4iMRTCzhk3pm1D-TVCAJUpBKK24vgnaL7dDGpgovFgjjur-X3svBX7IHYfYUc2SxNgAJNL3bSsqvmZZ0ub0d5dfFYMGDhPusLABYM_BC4v1AiaK9tAAAAAW6TcnoA"""
+BOT_TOKEN = os.environ.get(
+    "BOT_TOKEN", "6308227197:AAHweeHPdwsa9SDWpr7g627qxpqtbZsaWsU"
+)
 
 
-app = Client("ApprovalReqBot", api_id=API_ID,
-             api_hash=API_HASH, session_string=USER_SESSION)
+API_ID = 22678379
+API_HASH = "8c901dc52cf2cf336739713f37c6222c"
+USER_SESSION = """AQFaC2sAIaW5YKlAT00hrs6u_5jN4t8b21K9TmELWPoBe_E3r4eU98m3bV46ghbHAacXbhNtM90drQuLfOFPt-4CyqXMtNEZ2uryZCiq1lCoTSaznrC40nGBP-LQjLLI_YSVo9M36_6QIdpT4d7qPcinln9W85HA2iWxOjT5ORVdyC2lhiKfU2q8Paww0lb1XyRK1Hd9T1Jt-RPOnBlTZcgbvUJUGPRk6ysYAOh_yDDLFRindrMtdgKMHeaaMp_XcAkx8fSbLSdBIGSxweFJwmnZFVEoT0ecCges-RgFj6ISFAqTFzCkN4ccRRHvl5RyUpDahnOxfxVCYn1x-eymnRohVarroQAAAAG0Q8N6AA"""
+
+user_session = os.environ.get("USER_SESSION", USER_SESSION)
+app = Client(
+    "MayaApprovalReqBot", api_id=API_ID, api_hash=API_HASH, session_string=user_session
+)
+bot = Client("MayaRobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 
-@app.on_message(filters.private & filters.command(['start']))
+@app.on_message(filters.private & filters.regex("!start"))
 async def start_command(_, msg: Message):
-    await msg.reply_text("Hello")
+    await msg.reply_text("Hello from user.")
 
 
-@app.on_message(filters.private & filters.command(['accept']))
+@bot.on_message(filters.private & filters.command(["start"]))
+async def start_command_h(_, msg: Message):
+    await msg.reply_text("Hello from bot")
+
+
+@app.on_message(filters.private & filters.regex("!accept"))
 async def approve_requests(_, msg: Message):
+    print("triggerd userbot")
     try:
-        chat_id = int(msg.text.split("/accept ")[-1])
+        chat_id = int(msg.text.split("!accept ")[-1])
     except:
         return
-    edit_msg = await msg.reply_text('Started to Approving...Please dont send again this command until i complete this task..')
+    sent_msg = await msg.reply_text(
+        "Started to Accepting...Please don't send again this command until i complete this task.."
+    )
     s_count = 1
     u_count = 0
     try:
 
         async for user in app.get_chat_join_requests(chat_id):
 
-            if s_count % 200 == 0:
+            if s_count % 400 == 0:
                 try:
-                    await edit_msg.edit_text(
-                        f"In Progress\n\n**Success:** {str(s_count)}\n**Failed:** {str(u_count)}"
+                    await sent_msg.edit_text(
+                        f"In Progress\n\n**Accepted:** {str(s_count)}"
                     )
 
                 except:
@@ -46,11 +63,11 @@ async def approve_requests(_, msg: Message):
 
             if s_count % 1000 == 0:
                 try:
-                    await edit_msg.edit_text(
-                        f"Sleeping for 30 seconds to avoid spam\n\n**Success:** {str(s_count)}\n**Failed:** {str(u_count)}"
+                    await sent_msg.edit_text(
+                        f"Sleeping for 10 seconds to avoid spam\n\n**Accepted:** {str(s_count)}\n**Rejected:** {str(u_count)}"
                     )
-                    await asyncio.sleep(30)
-                    await edit_msg.edit_text(
+                    await asyncio.sleep(10)
+                    await sent_msg.edit_text(
                         f"In Progress\n\n**Success:** {str(s_count)}\n**Failed:** {str(u_count)}"
                     )
 
@@ -69,15 +86,39 @@ async def approve_requests(_, msg: Message):
 
             except BaseException as E:
                 u_count += 1
-
-        try:
-            await edit_msg.edit_text(f"Completed\n\nSuccess: {s_count}\nUnsuccess: {u_count}")
-        except:
-            pass
-
-    except:
+    except Exception as x:
+        print(x)
         return
 
+    try:
+        await sent_msg.edit_text(
+            f"Completed\n\nSuccess: {s_count}\nUnsuccess: {u_count}"
+        )
+    except:
+        pass
 
-print("bot statfed")
+
+@bot.on_chat_join_request()
+async def reqs_handler(app: Client, request: ChatJoinRequest):
+
+    print("trigger bot")
+    chatid = request.chat.id
+    user = request.from_user.id
+
+    try:
+        await app.approve_chat_join_request(chatid, user)
+        await asyncio.sleep(1)
+
+    except UserAlreadyParticipant:
+        pass
+
+    except UserChannelsTooMuch:
+        pass
+
+    except Exception as ex:
+        print(ex)
+
+
+print("bot started ;)")
+bot.start()
 app.run()

@@ -1,0 +1,28 @@
+{
+    "name": "Pending bot",
+    "description": "Trim the photo with python.",
+    "repository": "https://github.com/crazebotz/Video-Tool-Bot",
+    "keywords": [
+        "telegram",
+        "bot",
+        "trim"
+    ],
+    "env": {
+        "BOT_TOKEN": {
+            "description": "Telegram Bot Token",
+            "required": false
+        }
+    },
+    "addons": [],
+    "buildpacks": [
+        {
+            "url": "heroku/python"
+        }
+    ],
+    "formation": {
+        "worker": {
+            "quantity": 1,
+            "size": "basic"
+        }
+    }
+}
